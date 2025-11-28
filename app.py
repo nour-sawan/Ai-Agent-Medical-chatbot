@@ -3,40 +3,33 @@ import base64
 import time
 import streamlit as st
 from dotenv import load_dotenv
-load_dotenv()
 
+# LangChain imports (updated)
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain.chains.retrieval_qa import RetrievalQA
+from langchain.schema.runnable import RunnablePassthrough
 from langchain.prompts import PromptTemplate
 
-
+# Load environment variables
+load_dotenv()
 
 # ================= CONFIG =================
 PDF_PATH = "data/Guideline-Hand-Hygiene.pdf"
 
 OPENAI_KEY = os.environ.get("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
 
-
 if OPENAI_KEY is None:
-    st.error("❌ API Key not found. Check your .env file.")
-    st.stop()
-
-
-if OPENAI_KEY is None:
-    st.error("❌ API Key not found. Check your .env file.")
+    st.error("❌ API Key not found. Add it to Streamlit secrets or .env file")
     st.stop()
 
 st.set_page_config(page_title="Medical Q&A Chatbot", layout="centered")
-
 
 # ================= LOAD CSS =================
 if os.path.exists("style.css"):
     with open("style.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
 
 # ================= BACKGROUND =================
 def set_background(image_path):
@@ -62,7 +55,6 @@ def set_background(image_path):
 
 set_background("assets/medical.avif")
 
-
 # ================= SIDEBAR =================
 with st.sidebar:
     st.markdown("## ⚙ Controls")
@@ -73,7 +65,6 @@ with st.sidebar:
     if st.button("🗑 Clear Chat"):
         st.session_state.chat_history = []
         st.rerun()
-
 
 # ================= MAIN CONTAINER =================
 st.markdown('<div class="main-container">', unsafe_allow_html=True)
@@ -88,12 +79,10 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-
 # ================= CHECK PDF =================
 if not os.path.exists(PDF_PATH):
     st.error("❌ PDF file not found!")
     st.stop()
-
 
 # ================= LOAD & PROCESS PDF =================
 @st.cache_resource(show_spinner=False)
@@ -110,67 +99,55 @@ def load_vectorstore():
     chunks = splitter.split_documents(pages)
 
     embeddings = OpenAIEmbeddings(
-        openai_api_key=os.environ.get("OPENAI_API_KEY")
+        openai_api_key=OPENAI_KEY
     )
 
     vectorstore = FAISS.from_documents(chunks, embeddings)
     return vectorstore
 
-
-# ================= SMART + STRICT PROMPT =================
-strict_prompt = PromptTemplate(
+# ================= PROMPT =================
+prompt = PromptTemplate(
     input_variables=["context", "question"],
     template="""
 You are a STRICT medical document assistant.
 
-You MUST understand the intent and answer ONLY what is asked, based on the provided context.
-
-Answer ONLY using the provided context.
-Expand the answer ONLY when the question explicitly asks for details or explanation.
-Do NOT add extra information that is not directly requested in the question.
-Stay focused on answering the exact scope of the question.
-
-If the answer is NOT FOUND, respond exactly:
+Answer ONLY from the given context.
+If not found, respond exactly:
 Not found in the provided document.
 
 Context:
 {context}
 
-User Question:
+Question:
 {question}
 
-Answer format:
-
 Answer:
-- Start with a short, clear opening sentence
-Use bullet points ( • ) and place EACH bullet on a NEW LINE
-- Include ONLY information that answers the question directly
 """
 )
-
 
 # ================= LOAD SYSTEM =================
 with st.spinner("🔄 Loading document..."):
     vectorstore = load_vectorstore()
 
-
 llm = ChatOpenAI(
     model="gpt-4o-mini",
     temperature=0,
-    openai_api_key=os.environ.get("OPENAI_API_KEY")
+    openai_api_key=OPENAI_KEY
 )
 
-qa_chain = RetrievalQA.from_chain_type(
-    llm=llm,
-    retriever=vectorstore.as_retriever(search_kwargs={"k": 10}),
-    chain_type_kwargs={"prompt": strict_prompt},
-    return_source_documents=False
-)
+retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
 
+def format_docs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
+qa_chain = (
+    {"context": retriever | format_docs, "question": RunnablePassthrough()}
+    | prompt
+    | llm
+)
 
 # ================= TYPING ANIMATION =================
 def typewriter(text: str):
-    """Show answer with typing animation inside chat-box div."""
     placeholder = st.empty()
     displayed = ""
     for char in text:
@@ -179,11 +156,10 @@ def typewriter(text: str):
             f'<div class="chat-box">{displayed}</div>',
             unsafe_allow_html=True
         )
-        time.sleep(0.008) 
+        time.sleep(0.008)
 
 # ================= TITLE =================
 st.title("🩺 Medical Document Q&A Chatbot")
-
 
 # ================= ROBOT GIF =================
 if os.path.exists("assets/robot.gif"):
@@ -197,7 +173,6 @@ if os.path.exists("assets/robot.gif"):
         unsafe_allow_html=True
     )
 
-
 # ================= SHOW CHAT HISTORY =================
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
@@ -209,10 +184,8 @@ for question, answer in st.session_state.chat_history:
     with st.chat_message("assistant"):
         st.markdown(f'<div class="chat-box">{answer}</div>', unsafe_allow_html=True)
 
-
 # ================= USER INPUT =================
 query = st.chat_input("Ask your medical policy question...")
-
 
 # ================= HANDLE QUERY =================
 if query:
@@ -220,20 +193,13 @@ if query:
     with st.chat_message("user"):
         st.markdown(f'<div class="chat-box">{query}</div>', unsafe_allow_html=True)
 
-    result = qa_chain.invoke({
-        "question": query,
-        "chat_history": st.session_state.chat_history
-    })
-
-    answer = result["answer"].strip()
+    result = qa_chain.invoke(query)
+    answer = result.strip()
 
     with st.chat_message("assistant"):
         typewriter(answer)
 
     st.session_state.chat_history.append((query, answer))
-
-
-
 
 # ================= END MAIN CONTAINER =================
 st.markdown('</div>', unsafe_allow_html=True)
