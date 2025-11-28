@@ -162,11 +162,12 @@ st.title("🩺 Medical Document Q&A Chatbot")
 
 # ================= ROBOT GIF =================
 if os.path.exists("assets/robot.gif"):
+    robot_b64 = base64.b64encode(open("assets/robot.gif", "rb").read()).decode()
+
     st.markdown(
         f"""
-        <div class="gif-container">
-            <img src="data:image/gif;base64,
-            {base64.b64encode(open('assets/robot.gif', 'rb').read()).decode()}">
+        <div class="robot-wrapper">
+            <img class="robot-img" src="data:image/gif;base64,{robot_b64}">
         </div>
         """,
         unsafe_allow_html=True
