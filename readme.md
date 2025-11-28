@@ -1,5 +1,5 @@
 # 🩺 Medical Document Q&A Chatbot
-![App Preview](assets/chatbot-interface.png)
+<img src="assets/chatbot-interface.png" width="800"/>
 
 An AI-powered chatbot that allows users to ask questions directly from the **CDC Hand Hygiene Guideline** document.
 
