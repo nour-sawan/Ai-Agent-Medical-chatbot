@@ -4,7 +4,7 @@ import time
 import streamlit as st
 from dotenv import load_dotenv
 load_dotenv()
-from langchain.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.embeddings import OpenAIEmbeddings
@@ -16,7 +16,8 @@ from langchain.prompts import PromptTemplate
 # ================= CONFIG =================
 PDF_PATH = "data/Guideline-Hand-Hygiene.pdf"
 
-OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
+OPENAI_KEY = os.environ.get("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
+
 
 if OPENAI_KEY is None:
     st.error("❌ API Key not found. Check your .env file.")
