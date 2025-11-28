@@ -4,14 +4,13 @@ import time
 import streamlit as st
 from dotenv import load_dotenv
 
-# LangChain imports (updated)
+# Updated LangChain imports
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import PromptTemplate
-
 
 # Load environment variables
 load_dotenv()
@@ -93,15 +92,13 @@ def load_vectorstore():
     pages = loader.load()
 
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=150
+        chunk_size=1200,
+        chunk_overlap=200
     )
 
     chunks = splitter.split_documents(pages)
 
-    embeddings = OpenAIEmbeddings(
-        openai_api_key=OPENAI_KEY
-    )
+    embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_KEY)
 
     vectorstore = FAISS.from_documents(chunks, embeddings)
     return vectorstore
@@ -136,7 +133,8 @@ llm = ChatOpenAI(
     openai_api_key=OPENAI_KEY
 )
 
-retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
+# Increased k for better results ✅
+retriever = vectorstore.as_retriever(search_kwargs={"k": 15})
 
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
@@ -196,7 +194,6 @@ if query:
 
     result = qa_chain.invoke(query)
     answer = result.content.strip()
-
 
     with st.chat_message("assistant"):
         typewriter(answer)
