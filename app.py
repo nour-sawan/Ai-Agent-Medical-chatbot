@@ -1,6 +1,6 @@
 import os
 import base64
-import time  
+import time
 import streamlit as st
 from dotenv import load_dotenv
 load_dotenv()
@@ -9,8 +9,9 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain.chains import ConversationalRetrievalChain
+from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
+
 
 
 # ================= CONFIG =================
@@ -159,12 +160,13 @@ llm = ChatOpenAI(
     openai_api_key=os.environ.get("OPENAI_API_KEY")
 )
 
-qa_chain = ConversationalRetrievalChain.from_llm(
+qa_chain = RetrievalQA.from_chain_type(
     llm=llm,
     retriever=vectorstore.as_retriever(search_kwargs={"k": 10}),
-    combine_docs_chain_kwargs={"prompt": strict_prompt},
-    return_source_documents=False  # ✅ No source/page displayed
+    chain_type_kwargs={"prompt": strict_prompt},
+    return_source_documents=False
 )
+
 
 # ================= TYPING ANIMATION =================
 def typewriter(text: str):
