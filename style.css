@@ -209,3 +209,40 @@ button[kind="primary"] {
         width: 220px;
     }
 }
+/* ===== ROBOT APPEAR NICE ===== */
+
+.robot-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 10px 0 30px 0;
+    animation: robotFadeIn 1.8s ease forwards;
+    opacity: 0;
+}
+
+.robot-img {
+    width: 230px;
+    max-width: 60%;
+    height: auto;
+    filter: drop-shadow(0 12px 25px rgba(0,0,0,0.15));
+    animation: floatRobot 3s ease-in-out infinite;
+}
+
+/* float effect */
+@keyframes floatRobot {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}
+
+/* entrance effect */
+@keyframes robotFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
