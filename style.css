@@ -5,7 +5,7 @@
     padding: 0;
 }
 
-/* علبة المحتوى الأساسية للصفحة */
+/* =============== MAIN CONTAINER =============== */
 .main-container {
     background: rgba(255, 255, 255, 0.9);
     padding: 35px;
@@ -64,24 +64,27 @@ h1 {
 
 /* =============== CHAT BUBBLES =============== */
 .chat-box {
-    background: white;
-    padding: 18px 22px;
+    background: #ffffff;
+    padding: 16px 20px;
     border-radius: 18px;
     margin-bottom: 18px;
-    box-shadow: 0 5px 12px rgba(0,0,0,0.06);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
     line-height: 1.6;
-    animation: messageFade 0.6s ease-in-out forwards;
-    opacity: 0;
     font-size: 17px;
+    font-weight: 500;
+    color: #1b1b1b !important;
+    word-wrap: break-word;
+
+    /* show immediately, animation only moves it */
+    opacity: 1 !important;
+    animation: messageFade 0.6s ease-in-out forwards;
 }
 
 @keyframes messageFade {
     from {
-        opacity: 0;
         transform: translateY(6px);
     }
     to {
-        opacity: 1;
         transform: translateY(0);
     }
 }
@@ -189,8 +192,11 @@ button[kind="primary"] {
 
     .chat-box {
         font-size: 15px;
-        padding: 12px 14px;
-        margin-bottom: 10px;
+        padding: 14px 16px;
+        margin-left: 6px;
+        margin-right: 6px;
+        background: #ffffff;
+        color: #000000 !important;
     }
 
     div[data-testid="stChatInput"] {
