@@ -195,7 +195,8 @@ if query:
         st.markdown(f'<div class="chat-box">{query}</div>', unsafe_allow_html=True)
 
     result = qa_chain.invoke(query)
-    answer = result.strip()
+    answer = result.content.strip()
+
 
     with st.chat_message("assistant"):
         typewriter(answer)
