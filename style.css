@@ -1,4 +1,20 @@
+/* =============== GLOBAL =============== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
+/* علبة المحتوى الأساسية للصفحة */
+.main-container {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 35px;
+    border-radius: 24px;
+    max-width: 950px;
+    margin: 30px auto;
+    box-shadow: 0 15px 45px rgba(0,0,0,0.12);
+    backdrop-filter: blur(10px);
+}
 
 /* =============== TITLE =============== */
 h1 {
@@ -56,6 +72,7 @@ h1 {
     line-height: 1.6;
     animation: messageFade 0.6s ease-in-out forwards;
     opacity: 0;
+    font-size: 17px;
 }
 
 @keyframes messageFade {
@@ -115,15 +132,7 @@ button[kind="primary"] {
     border: none !important;
 }
 
-/* =============== SCROLLBAR =============== */
-::-webkit-scrollbar {
-    width: 6px;
-}
-::-webkit-scrollbar-thumb {
-    background: #3A7BD5;
-    border-radius: 5px;
-}
-/* === GIF CONTAINER === */
+/* =============== GIF CONTAINER =============== */
 .gif-container {
     text-align: center;
     margin-top: 10px;
@@ -142,4 +151,65 @@ button[kind="primary"] {
     0% { transform: translateY(0px); }
     50% { transform: translateY(-12px); }
     100% { transform: translateY(0px); }
+}
+
+/* =============== SCROLLBAR =============== */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #3A7BD5;
+    border-radius: 5px;
+}
+
+/* =============== RESPONSIVE (MOBILE) =============== */
+@media (max-width: 600px) {
+
+    .main-container {
+        margin: 10px auto;
+        padding: 18px;
+        border-radius: 18px;
+    }
+
+    h1 {
+        font-size: 26px !important;
+        margin-bottom: 8px;
+    }
+
+    .fadein-box {
+        padding: 12px 18px;
+        margin: 20px 0 25px 0;
+    }
+
+    .fadein-text {
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .chat-box {
+        font-size: 15px;
+        padding: 12px 14px;
+        margin-bottom: 10px;
+    }
+
+    div[data-testid="stChatInput"] {
+        border-radius: 18px !important;
+        padding: 6px 10px !important;
+    }
+
+    div[data-testid="stChatInput"] textarea {
+        font-size: 15px !important;
+        padding: 10px 8px !important;
+    }
+
+    button[kind="primary"] {
+        padding: 8px 14px !important;
+        font-size: 14px !important;
+    }
+
+    .gif-container img {
+        max-width: 65%;
+        width: 220px;
+    }
 }
