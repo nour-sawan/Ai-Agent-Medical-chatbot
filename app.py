@@ -1,40 +1,36 @@
-##imported the libries I need for the code to Run
+## Imported libraries
 import os
-import base64 ##for background and robot gif (the robot gif is in assets folder)
+import base64
 import time
 import streamlit as st
 from dotenv import load_dotenv
-import re #for citation extraction
-from collections import Counter ##for citation extraction
-
+import re
+from collections import Counter
 
 # Updated LangChain imports
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnableMap
-from langchain_core.runnables import RunnableMap
+from langchain_core.runnables import RunnablePassthrough
 
 
-##My API key is loaded from My .env file (please use your own Key)
-# Load environment variables
-load_dotenv()
-
-
-# Configuration for the PDF path and OpenAI Key
-# Configuration for the PDF path and OpenAI Key
-PDF_PATH = "data/Guideline-Hand-Hygiene.pdf"
-
-# load from Streamlit secrets on cloud
-OPENAI_KEY = st.secrets.get("OPENAI_API_KEY")
+# Load API key (Supports Streamlit Cloud + Local)
+OPENAI_KEY = (
+    st.secrets.get("OPENAI_API_KEY")
+    if hasattr(st, "secrets") and "OPENAI_API_KEY" in st.secrets
+    else os.environ.get("OPENAI_API_KEY")
+)
 
 if not OPENAI_KEY:
-    st.error(" OPENAI_API_KEY missing in Streamlit Secrets.")
+    st.error("❌ OPENAI_API_KEY missing. Add it to Streamlit secrets or local .env")
     st.stop()
 
+# PDF path
+PDF_PATH = "data/Guideline-Hand-Hygiene.pdf"
+
+# Streamlit page setup
 st.set_page_config(page_title="Medical Q&A Chatbot", layout="centered")
 
 
