@@ -17,11 +17,11 @@ This project was also tested in a **Virtual Machine (VM) environment** to ensure
 - ✅ Ask questions about medical hand hygiene guidelines
 - ✅ Answers generated ONLY from the uploaded document
 - ✅ Modern animated UI with background and robot
+- ✅ Page-number citations
 - ✅ Typing animation for responses
 - ✅ Built with Streamlit + LangChain + FAISS + OpenAI
 - ✅ Deployed on Streamlit Cloud
 
----
 ## 🧾 Citation System (Automatic Page Detection)
 
 Each answer includes a citation showing the  PDF pages used to generate the response.
@@ -33,17 +33,17 @@ Example:
 
 # How it works:
 
-Extracts keywords from the LLM answer
+- Extracts keywords from the LLM answer
 
-Matches them to document chunks
+- Matches them to document chunks
 
-Scores relevance
+- Scores relevance
 
-Returns only pages with true evidence
+- Returns only pages with true evidence
 
-Falls back to default pages if no match found
+- Falls back to default pages if no match found
 
-This guarantees that responses are verifiable and fully grounded in the CDC guideline.
+- This guarantees that responses are verifiable and fully grounded in the CDC guideline.
 
 ## 🛠️ Tech Stack
 
