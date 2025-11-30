@@ -1,48 +1,42 @@
-## Imported libraries
 import os
 import base64
 import time
 import streamlit as st
 from dotenv import load_dotenv
-import re
-from collections import Counter
 
 # Updated LangChain imports
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
+from langchain_core.prompts import PromptTemplate
+from langchain_core.runnables import RunnableMap
 
+# Load environment variables
+load_dotenv()
 
-# Load API key (Supports Streamlit Cloud + Local)
-OPENAI_KEY = (
-    st.secrets.get("OPENAI_API_KEY")
-    if hasattr(st, "secrets") and "OPENAI_API_KEY" in st.secrets
-    else os.environ.get("OPENAI_API_KEY")
-)
-
-if not OPENAI_KEY:
-    st.error("❌ OPENAI_API_KEY missing. Add it to Streamlit secrets or local .env")
-    st.stop()
-
-# PDF path
+# ================= CONFIG =================
 PDF_PATH = "data/Guideline-Hand-Hygiene.pdf"
 
-# Streamlit page setup
+# Load OpenAI Key (Local .env OR Streamlit Cloud)
+env_key = os.environ.get("OPENAI_API_KEY")
+secret_key = st.secrets["OPENAI_API_KEY"] if hasattr(st, "secrets") and "OPENAI_API_KEY" in st.secrets else None
+
+OPENAI_KEY = env_key or secret_key
+
+if OPENAI_KEY is None:
+    st.error("❌ API Key not found. Add it to Streamlit secrets or .env file")
+    st.stop()
+
 st.set_page_config(page_title="Medical Q&A Chatbot", layout="centered")
 
-
-
-
-  #Loading CSS
+# ================= LOAD CSS =================
 if os.path.exists("style.css"):
     with open("style.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-        
-        
-  # BACKGROUND (I have a background genrated by Gemini AI, you can find it in assets folder)
+
+# ================= BACKGROUND =================
 def set_background(image_path):
     if not os.path.exists(image_path):
         return
@@ -66,18 +60,18 @@ def set_background(image_path):
 
 set_background("assets/medical.avif")
 
-
-  # SIDEBAR (clear chat button in the sidebar to reset the chat history)
+# ================= SIDEBAR =================
 with st.sidebar:
+    st.markdown("## ⚙ Controls")
+
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
     if st.button("🗑 Clear Chat"):
         st.session_state.chat_history = []
         st.rerun()
-        
 
-   # MAIN CONTAINER 
+# ================= MAIN CONTAINER =================
 st.markdown('<div class="main-container">', unsafe_allow_html=True)
 
 st.markdown("""
@@ -90,12 +84,9 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-##Here we start th main code for the chatbot 
-
-
 # ================= CHECK PDF =================
 if not os.path.exists(PDF_PATH):
-    st.error(" PDF file not found!")
+    st.error("❌ PDF file not found!")
     st.stop()
 
 # ================= LOAD & PROCESS PDF =================
@@ -114,10 +105,14 @@ def load_vectorstore():
     for i, page in enumerate(pages):
         split_page = splitter.split_documents([page])
         for c in split_page:
-            c.metadata["page"] = i + 1   #  store original page number( I did this to restore original PDF page)
+            c.metadata["page"] = i + 1   # ⭐ store original page number
             chunks.append(c)
 
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+        embeddings = OpenAIEmbeddings(
+        model="text-embedding-3-small",
+        openai_api_key=OPENAI_KEY
+    )
+
     vectorstore = FAISS.from_documents(chunks, embeddings)
     return vectorstore
 
@@ -147,13 +142,13 @@ with st.spinner("🔄 Loading document..."):
     vectorstore = load_vectorstore()
 
 llm = ChatOpenAI(
-    model="gpt-4o-mini", #its from OpenAI
-    temperature=0,   #temperature 0 for more accurate answers
-    openai_api_key=OPENAI_KEY #My API key
+    model="gpt-4o-mini",
+    temperature=0,
+    openai_api_key=OPENAI_KEY
 )
 
-# Increased k for better results 
-retriever = vectorstore.as_retriever(search_kwargs={"k": 15}) #--> k is the number of chunks to retrieve
+# Increased k for better results ✅
+retriever = vectorstore.as_retriever(search_kwargs={"k": 15})
 
 def format_docs(docs):
     formatted = ""
@@ -163,12 +158,19 @@ def format_docs(docs):
     return formatted
 
 # ================= QA CHAIN =================
+from langchain_core.runnables import RunnableMap
+
 qa_chain = (
     {"context": retriever | format_docs, "question": RunnablePassthrough()}
     | prompt
     | llm
 )
 ## ================= EXTRACT CITATIONS =================
+import re
+from collections import Counter
+
+import re
+
 def extract_citations(docs, answer):
     """
     Evidence-based citation selection:
@@ -176,7 +178,7 @@ def extract_citations(docs, answer):
     - Matches only strong medical evidence terms
     - Avoids generic, repeated vocabulary
     - Returns only the true supporting pages
-    """ #----> If answer is "Not found" → do NOT cite anything
+    """ # 0) If answer is "Not found" → do NOT cite anything
     if "Not found in the provided document" in answer:
         return "📘 Source: Not applicable"
 
@@ -255,7 +257,7 @@ def extract_citations(docs, answer):
 
 
 
- #TYPING ANIMATIONn(addional feature)
+# ================= TYPING ANIMATION =================
 def typewriter(text: str):
     placeholder = st.empty()
     displayed = ""
@@ -267,13 +269,10 @@ def typewriter(text: str):
         )
         time.sleep(0.008)
 
-
-
-   #TITLE 
+# ================= TITLE =================
 st.title("🩺 Medical Document Q&A Chatbot")
 
-
-   #ROBOT GIF (additional feature)
+# ================= ROBOT GIF =================
 if os.path.exists("assets/robot.gif"):
     robot_b64 = base64.b64encode(open("assets/robot.gif", "rb").read()).decode()
 
@@ -286,8 +285,7 @@ if os.path.exists("assets/robot.gif"):
         unsafe_allow_html=True
     )
 
-
-#SHOW CHAT HISTORY (additional feature+ so when the user write other question the previous chat will be shown)
+# ================= SHOW CHAT HISTORY =================
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
@@ -298,11 +296,8 @@ for question, answer in st.session_state.chat_history:
     with st.chat_message("assistant"):
         st.markdown(f'<div class="chat-box">{answer}</div>', unsafe_allow_html=True)
 
-
-#USER INPUT 
-query = st.chat_input("Ask Your Medical Policy Question...")
-
-
+# ================= USER INPUT =================
+query = st.chat_input("Ask your medical policy question...")
 
 # ================= HANDLE QUERY =================
 if query:
