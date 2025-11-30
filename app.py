@@ -24,13 +24,20 @@ from langchain_core.runnables import RunnableMap
 load_dotenv()
 
 
-# Congiguration for the PDF path and OpenAI Key
+# Configuration for the PDF path and OpenAI Key
+# Configuration for the PDF path and OpenAI Key
 PDF_PATH = "data/Guideline-Hand-Hygiene.pdf"
-OPENAI_KEY = os.environ.get("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
-if OPENAI_KEY is None:
-    st.error("API Key not found. Add it to Streamlit secrets or .env file")
+
+# load from Streamlit secrets on cloud
+OPENAI_KEY = st.secrets.get("OPENAI_API_KEY")
+
+if not OPENAI_KEY:
+    st.error("❌ OPENAI_API_KEY missing in Streamlit Secrets.")
     st.stop()
+
 st.set_page_config(page_title="Medical Q&A Chatbot", layout="centered")
+
+
 
 
   #Loading CSS
