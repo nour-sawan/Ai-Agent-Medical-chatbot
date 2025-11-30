@@ -32,7 +32,7 @@ PDF_PATH = "data/Guideline-Hand-Hygiene.pdf"
 OPENAI_KEY = st.secrets.get("OPENAI_API_KEY")
 
 if not OPENAI_KEY:
-    st.error("❌ OPENAI_API_KEY missing in Streamlit Secrets.")
+    st.error(" OPENAI_API_KEY missing in Streamlit Secrets.")
     st.stop()
 
 st.set_page_config(page_title="Medical Q&A Chatbot", layout="centered")
@@ -121,9 +121,8 @@ def load_vectorstore():
             c.metadata["page"] = i + 1   #  store original page number( I did this to restore original PDF page)
             chunks.append(c)
 
-    embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_KEY)
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
     vectorstore = FAISS.from_documents(chunks, embeddings)
-
     return vectorstore
 
 
